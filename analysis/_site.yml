@@ -1,17 +1,26 @@
-name: "NaCRRI_2019GS"
+name: NaCRRI_2019GS
 output_dir: ../docs
 navbar:
-  title: "NaCRRI_2019GS"
+  title: NaCRRI_2019GS
   left:
-  - text: Home
+  - text: Synopsis
     href: index.html
-  - text: About
-    href: about.html
+  - text: Prep. Training Data
+    href: PrepareTrainingData.html
+  - text: Get BLUPs
+    href: GetBLUPs.html
+  - text: Cross-validation
+    href: CrossValidation.html
+  - text: Get GEBV for GS C2
+    href: GetGEBVs.html
   - text: License
     href: license.html
 output:
   workflowr::wflow_html:
     toc: yes
     toc_float: yes
-    theme: cosmo
-    highlight: textmate
+    toc_depth: 3
+    collapsed: no
+    number_sections: no
+    theme: darkly
+    highlight: tango

@@ -1,0 +1,233 @@
+---
+title: "Genomic Prediction Analysis - Stage II of II: Cross-validation"
+author: "wolfemd"
+date: "2019-9-16"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = F, tidy = T)
+```
+
+# Input parameters
+Towards this becoming an actual R function...
+```{r, eval=F}
+#path<-"~/Google Drive/NextGenGS/NaCRRI_2019GS/DatabaseDownload_91619/"
+require(tidyverse); require(magrittr)
+path<-"/workdir/mw489/NaCRRI_2019GS/"
+```
+
+# BLUPs and SNPs
+```{r, eval=F}
+rm(list=ls()); gc()
+library(tidyverse); library(magrittr); 
+blups<-readRDS(file="data/nacrri_blupsForCrossVal_91619.rds") %>% 
+      mutate(Dataset="NoOutlierRemoval") %>% 
+      select(Trait,Dataset,blups) %>% 
+      bind_rows(
+            readRDS(file="data/nacrri_blupsForCrossVal_outliersRemoved_91619.rds") %>% 
+                  mutate(Dataset="OutliersRemoved") %>% 
+                  select(Trait,Dataset,blups))
+
+snps<-readRDS(paste0("/workdir/mw489/ImputationEastAfrica_StageIII_91119/",
+                     "DosageMatrix_ImputationEastAfrica_AllSamples_ReadyForGP_91419.rds"))
+
+# Sample lists
+ugC1<-read.table(paste0("/workdir/mw489/ImputationEastAfrica_StageIII_91119/",
+                        "Subset_cassavaGBSbuild_June2016_withRef_NACCRI_CYCLE_chr1.imputed.samples"),
+                 stringsAsFactors = F, header = F)$V1
+ug11<-rownames(snps) %>% grep("^UG11",.,ignore.case = T,value = T)
+ug12<-rownames(snps) %>% grep("^UG12",.,ignore.case = T,value = T)
+ug13<-rownames(snps) %>% grep("^UG13",.,ignore.case = T,value = T)
+ug14<-rownames(snps) %>% grep("^UG14|UG_14_",.,ignore.case = T,value = T)
+# ugc14<-rownames(snps) %>% grep("^UGC14",.,ignore.case = T,value = T)
+# ugc17<-rownames(snps) %>% grep("^UGC17",.,ignore.case = T,value = T)
+# ugc18<-rownames(snps) %>% grep("^UGC18",.,ignore.case = T,value = T)
+ugGSC1<-union(rownames(snps) %>% .[. %in% ugC1],
+              rownames(snps) %>% grep("^UG15F",.,ignore.case = T,value = T))
+#ugGSC2<-rownames(snps) %>% grep("C2_GS_2018",.,value=T,invert = F)
+
+hasBLUPsAndSNPs<-blups %>% 
+      unnest() %>% 
+      select(GID) %>% 
+      distinct %>% 
+      filter(GID %in% c(ug11,ug12,ug13,ug14,ugGSC1)) %$%
+      GID
+
+dim(snps) # [1] 20733 23431
+snps %<>% .[rownames(.) %in% hasBLUPsAndSNPs,]
+dim(snps) # [1]  2523 23431
+gc()
+```
+
+# Make a kinship matrix
+MAF>1% filter
+```{r, eval=F}
+maf_filter<-function(snps,thresh){
+    freq<-colMeans(snps, na.rm=T)/2; maf<-freq;
+    maf[which(maf > 0.5)]<-1-maf[which(maf > 0.5)]
+    snps1<-snps[,which(maf>thresh)];
+    return(snps1) }
+snps %<>% maf_filter(.,0.01)
+dim(snps) # [1]  2523 22931
+```
+Make kinships
+```{r, eval=F}
+library(rrBLUP)
+K<-rrBLUP::A.mat(snps-1)
+saveRDS(K,file=paste0("/workdir/mw489/NaCRRI_2019GS/",
+                      "Kinship_NaCRRI_SamplesForCrossVal_91719.rds"))
+rm(snps); gc()
+```
+
+```{r, eval=F}
+ug11 %<>% .[. %in% rownames(K)]
+ug12 %<>% .[. %in% rownames(K)]
+ug13 %<>% .[. %in% rownames(K)]
+ug14 %<>% .[. %in% rownames(K)]
+ugGSC1 %<>% .[. %in% rownames(K)]
+ugTP<-c(ug11,ug12,ug13,ug14) %>% unique
+
+blups %<>%
+      rename(trainingData=blups) %>% 
+      mutate(trainingData=map(trainingData,~filter(.,GID %in% rownames(K))))
+
+# Note: Looks like only 15 samples with TCHART... remove
+
+blups %<>% filter(Trait != "TCHART")
+
+blups %<>%
+    mutate(seed_of_seeds=1:n(),
+           seeds=map(seed_of_seeds,function(seed_of_seeds,reps=5){ 
+               set.seed(seed_of_seeds); 
+               outSeeds<-sample(1:1000,size = reps,replace = F); 
+               return(outSeeds) }))
+```
+
+```{bash, eval=F}
+mkdir /workdir/mw489/NaCRRI_2019GS/CrossVal_91719
+```
+
+# Run CrossVal
+```{r, eval=F}
+# trainingData<-blups$trainingData[[1]]; seeds<-blups$seeds[[1]]; nfolds<-5; reps<-5;
+crossValidateFunc<-function(Trait,trainingData,seeds,nfolds=5,reps=5,ncores=100,Dataset,...){
+      trntstdata<-trainingData %>% 
+            filter(GID %in% rownames(K))
+      K1<-K[rownames(K) %in% trntstdata$GID,
+            rownames(K) %in% trntstdata$GID]
+      # rm(K,trainingData); gc()
+      # seed<-seeds[[1]]
+      # Nfolds=nfolds
+      makeFolds<-function(Nfolds=nfolds,seed){
+            genotypes<-rownames(K1)
+            
+            set.seed(seed)
+            seed_per_group<-sample(1:10000,size = 2,replace = FALSE)
+      
+            set.seed(seed_per_group[1])
+            FoldsThisRep_ugTP<-tibble(CLONE=genotypes[genotypes %in% ugTP],
+                                       Group="UgTP") %>% 
+                  mutate(Folds=sample(1:Nfolds,nrow(.),replace=T)) %>% 
+                  arrange(Folds) %>% 
+                  group_by(Group,Folds) %>% 
+                  nest(.key = Test)
+            set.seed(seed_per_group[2])
+            FoldsThisRep_ugc1<-tibble(CLONE=genotypes[genotypes %in% ugGSC1],
+                                       Group="UgGSC1") %>% 
+                  mutate(Folds=sample(1:Nfolds,nrow(.),replace=T)) %>% 
+                  arrange(Folds) %>% 
+                  group_by(Group,Folds) %>% 
+                  nest(.key = Test)
+
+           FoldsThisRep<-bind_rows(FoldsThisRep_ugTP,FoldsThisRep_ugc1) %>% 
+                  mutate(Test=map(Test,~.$CLONE),
+                         Train=map(Test,~genotypes[!genotypes %in% .]))
+            return(FoldsThisRep) }
+      
+    crossval<-tibble(Rep=1:reps,seed=unlist(seeds)[1:reps]) %>% 
+        mutate(Folds=map2(Rep,seed,~makeFolds(Nfolds=nfolds,seed=.y))) %>% 
+        unnest()
+
+    #Test<-crossval$Test[[1]]; Train<-crossval$Train[[1]]
+    crossValidate<-function(Test,Train){ 
+      train<-Train
+      test<-Test
+      trainingdata<-trntstdata %>% 
+        filter(GID %in% train) %>% 
+        mutate(GID=factor(GID,levels=rownames(K1)))
+       
+      require(sommer)
+      proctime<-proc.time()
+      fit <- mmer(fixed = drgBLUP ~1,
+                  random = ~vs(GID,Gu=K1),
+                  weights = WT,
+                  data=trainingdata) 
+      proc.time()-proctime
+      
+      x<-fit$U$`u:GID`$drgBLUP 
+      gebvs<-tibble(GID=names(x),
+                    GEBV=as.numeric(x))
+      
+      accuracy<-gebvs %>% 
+            filter(GID %in% test) %>% 
+            left_join(
+                  trntstdata %>% 
+                        dplyr::select(GID,BLUP) %>% 
+                        filter(GID %in% test)) %$% 
+            cor(GEBV,BLUP, use='complete.obs') 
+    return(accuracy)
+    }
+    
+    require(furrr)
+    options(mc.cores=ncores)
+    plan(multiprocess)
+    crossval<-crossval %>% 
+          mutate(accuracy=future_map2(Test,Train,~crossValidate(Test=.x,Train=.y)))
+    saveRDS(crossval,file=paste0("output/CrossVal_91719/",
+                                 "CrossVal_",Trait,"_",Dataset,"_91719.rds"))
+    rm(list=ls()); gc() 
+    }
+```
+cbsulm15 (112)
+```{r, eval=F}
+blups %>% 
+      mutate(CVaccuracy=pmap(.,crossValidateFunc))
+#saveRDS(cvresults_1,file="/workdir/IITA_2019GS/CrossValResults_IITA_TrainingPop_1_72719.rds")
+```
+
+
+# Plot Results
+```{r, fig.width=17}
+rm(list=ls());gc()
+library(tidyverse); library(magrittr); library(cowplot); 
+cv<-tibble(Files=list.files("output/CrossVal_91719/")) %>% 
+      separate(Files,c("bs","Trait","Dataset","morebs"),"_",remove = F) %>% 
+      select(-bs,-morebs) %>% 
+      mutate(cvResults=map(Files,~readRDS(paste0("output/CrossVal_91719/",.)))) %>% 
+      dplyr::select(-Files)
+cv %<>% 
+      unnest() %>% 
+      mutate(Ntrain=map_dbl(Train,length),
+             Ntest=map_dbl(Test,length)) %>% 
+      unnest(accuracy,.drop = T)
+```
+
+
+```{r, fig.width=17}
+library(viridis)
+cv %>% 
+      ggplot(.,aes(x=Trait,y=accuracy,fill=Dataset)) + 
+      geom_boxplot() + 
+      facet_grid(.~Group,space='free_x',scale='free_x') +
+      geom_hline(yintercept = 0,color='darkred',size=1.25) + 
+      theme_bw() + 
+      theme(axis.text.x = element_text(angle=90,face='bold',size=14))
+#      scale_fill_viridis_d(direction = -1)
+```
+
+# Next step
+
+[Stage II: Get GEBVs](GetGEBVs.html)

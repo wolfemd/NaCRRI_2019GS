@@ -1,0 +1,222 @@
+---
+title: "Predict GEBV for NaCRRI C2"
+author: "wolfemd"
+date: "2019-9-17"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = F, tidy = T)
+```
+
+# BLUPs and SNPs
+```{r, eval=F}
+rm(list=ls()); gc()
+library(tidyverse); library(magrittr); 
+blups<-readRDS(file="data/nacrri_blupsForCrossVal_91619.rds") %>% 
+      mutate(Dataset="NoOutlierRemoval") %>% 
+      select(Trait,Dataset,blups) %>% 
+      bind_rows(
+            readRDS(file="data/nacrri_blupsForCrossVal_outliersRemoved_91619.rds") %>% 
+                  mutate(Dataset="OutliersRemoved") %>% 
+                  select(Trait,Dataset,blups))
+
+snps<-readRDS(paste0("/workdir/mw489/ImputationEastAfrica_StageIII_91119/",
+                     "DosageMatrix_ImputationEastAfrica_AllSamples_ReadyForGP_91419.rds"))
+
+# Sample lists
+ugC1<-read.table(paste0("/workdir/mw489/ImputationEastAfrica_StageIII_91119/",
+                        "Subset_cassavaGBSbuild_June2016_withRef_NACCRI_CYCLE_chr1.imputed.samples"),
+                 stringsAsFactors = F, header = F)$V1
+ug11<-rownames(snps) %>% grep("^UG11",.,ignore.case = T,value = T)
+ug12<-rownames(snps) %>% grep("^UG12",.,ignore.case = T,value = T)
+ug13<-rownames(snps) %>% grep("^UG13",.,ignore.case = T,value = T)
+ug14<-rownames(snps) %>% grep("^UG14|UG_14_",.,ignore.case = T,value = T)
+# ugc14<-rownames(snps) %>% grep("^UGC14",.,ignore.case = T,value = T)
+# ugc17<-rownames(snps) %>% grep("^UGC17",.,ignore.case = T,value = T)
+# ugc18<-rownames(snps) %>% grep("^UGC18",.,ignore.case = T,value = T)
+ugGSC1<-union(rownames(snps) %>% .[. %in% ugC1],
+              rownames(snps) %>% grep("^UG15F",.,ignore.case = T,value = T))
+ugGSC2<-rownames(snps) %>% grep("C2_GS_2018",.,value=T,invert = F)
+
+hasBLUPsAndSNPs<-blups %>% 
+      unnest() %>% 
+      select(GID) %>% 
+      distinct %>% 
+      filter(GID %in% c(ug11,ug12,ug13,ug14,ugGSC1)) %$%
+      GID
+
+dim(snps) # [1] 20733 23431
+snps %<>% .[rownames(.) %in% c(hasBLUPsAndSNPs,ugGSC2),]
+dim(snps) # [1] 4120 23431
+gc()
+```
+
+# Make a kinship matrix
+MAF>1% filter
+```{r, eval=F}
+maf_filter<-function(snps,thresh){
+    freq<-colMeans(snps, na.rm=T)/2; maf<-freq;
+    maf[which(maf > 0.5)]<-1-maf[which(maf > 0.5)]
+    snps1<-snps[,which(maf>thresh)];
+    return(snps1) }
+snps %<>% maf_filter(.,0.01)
+dim(snps) # [1] 4120 23159
+```
+Make kinships
+```{r, eval=F}
+library(rrBLUP)
+K<-rrBLUP::A.mat(snps-1)
+saveRDS(K,file=paste0("/workdir/mw489/NaCRRI_2019GS/",
+                      "Kinship_NaCRRI_SamplesForGS_91719.rds"))
+```
+
+```{r, eval=F}
+ug11 %<>% .[. %in% rownames(K)]
+ug12 %<>% .[. %in% rownames(K)]
+ug13 %<>% .[. %in% rownames(K)]
+ug14 %<>% .[. %in% rownames(K)]
+ugGSC1 %<>% .[. %in% rownames(K)]
+ugTP<-c(ug11,ug12,ug13,ug14) %>% unique
+
+blups %<>%
+      rename(trainingData=blups) %>% 
+      mutate(trainingData=map(trainingData,~filter(.,GID %in% rownames(K))))
+
+# Note: Looks like only 15 samples with TCHART... remove
+
+blups %<>% filter(Trait != "TCHART")
+
+blups %<>%
+    mutate(seed_of_seeds=1:n(),
+           seeds=map(seed_of_seeds,function(seed_of_seeds,reps=5){ 
+               set.seed(seed_of_seeds); 
+               outSeeds<-sample(1:1000,size = reps,replace = F); 
+               return(outSeeds) }))
+```
+
+# PCA [cbsulm15]
+```{r, eval=F}
+pca<-prcomp(snps, scale=T, center=T) 
+pc_scores<-pca$x %>% 
+    .[,1:50] %>% 
+    as.data.frame %>% 
+    rownames_to_column(var="FullSampleName") %>% 
+    mutate(GeneticGroup=NA,
+           GeneticGroup=ifelse(FullSampleName %in% ugTP,"UgTP",
+                               ifelse(FullSampleName %in% ugGSC1,"UgGSC1",
+                                      ifelse(FullSampleName %in% ugGSC2,"UgGSC2",GeneticGroup))))
+```
+```{r, eval=F}
+summary(pca)$importance[,1:10] 
+```
+ PC1      PC2      PC3      PC4      PC5      PC6
+Standard deviation     42.66894 33.44368 28.70264 25.06732 23.58510 21.38532
+Proportion of Variance  0.07861  0.04830  0.03557  0.02713  0.02402  0.01975
+Cumulative Proportion   0.07861  0.12691  0.16248  0.18962  0.21364  0.23338
+                            PC7      PC8      PC9     PC10
+Standard deviation     20.46902 20.18326 19.17257 18.23462
+Proportion of Variance  0.01809  0.01759  0.01587  0.01436
+Cumulative Proportion   0.25147  0.26906  0.28494  0.29929
+
+First two PCs explain about 13% of the genetic variance. 
+
+Save PCA results
+```{r, eval=F}
+saveRDS(pc_scores,file="/workdir/mw489/NaCRRI_2019GS/PCscores_NaCRRI_SamplesForGS_91719.rds")
+saveRDS(pca,file="/workdir/mw489/NaCRRI_2019GS/PCA_NaCRRI_SamplesForGS_91719.rds")
+rm(pca); gc()
+```
+
+
+```{r fig.height=9, fig.width=17}
+#rm(list=ls());gc()
+library(tidyverse); library(magrittr); library(cowplot); 
+pc_scores<-readRDS("output/PCscores_NaCRRI_SamplesForGS_91719.rds")
+library(viridis)
+pc1v2<-pc_scores %>% 
+      ggplot(.,aes(x=PC1,y=PC2,color=GeneticGroup)) + 
+      geom_point() + 
+      theme_bw() + scale_color_viridis_d() + 
+      labs(x="PC1 (8%)",y="PC2 (5%)") + theme(legend.position = 'none')
+pc3v4<-pc_scores %>% 
+      ggplot(.,aes(x=PC3,y=PC4,color=GeneticGroup)) + 
+      geom_point() + 
+      theme_bw() + scale_color_viridis_d() + 
+      labs(x="PC3 (4%)",y="PC4 (3%)")
+plot_grid(pc1v2,pc3v4)
+```
+
+# Get GEBV! [cbsulm16]
+
+```{r, eval=F}
+K<-readRDS(paste0("/workdir/mw489/NaCRRI_2019GS/",
+                  "Kinship_NaCRRI_SamplesForGS_91719.rds"))
+ug11 %<>% .[. %in% rownames(K)]
+ug12 %<>% .[. %in% rownames(K)]
+ug13 %<>% .[. %in% rownames(K)]
+ug14 %<>% .[. %in% rownames(K)]
+ugGSC1 %<>% .[. %in% rownames(K)]
+ugTP<-c(ug11,ug12,ug13,ug14) %>% unique
+
+blups %<>%
+      rename(trainingData=blups) %>% 
+      mutate(trainingData=map(trainingData,~filter(.,GID %in% rownames(K))))
+
+# Note: Looks like only 15 samples with TCHART... remove
+
+blups %<>% filter(Trait != "TCHART")
+
+```
+
+```{r, eval=F}
+require(sommer)
+require(furrr)
+options(future.globals.maxSize= 1500*1024^2)
+options(mc.cores=18)
+plan(multiprocess)
+proctime<-proc.time()
+blups %>% 
+      mutate(GEBV=future_pmap(.,function(Trait,trainingData,Dataset,...){
+            trndata<-trainingData %>% 
+                  mutate(GID=factor(GID,levels=rownames(K)))
+            fit <- mmer(fixed = drgBLUP ~1,
+                        random = ~vs(GID,Gu=K),
+                        weights = WT,
+                        data=trndata)
+            x<-fit$U$`u:GID`$drgBLUP 
+            gebvs<-tibble(GID=names(x),
+                          GEBV=as.numeric(x))
+            saveRDS(gebvs,file=paste0("output/",
+                                      "GEBV_",Trait,"_",Dataset,"_NaCRRI_SamplesForGS_91719.rds"))
+            rm(fit); gc()}))
+proc.time() - proctime
+
+```
+
+# Format GEBV
+```{r, eval=F}
+gebvs<-list.files(path = "GEBV_91719/") %>% 
+      grep("GEBV_",.,value = T) %>% 
+      grep("_NaCRRI_SamplesForGS_91719.rds",.,value = T) %>% 
+      tibble(Files=.) %>% 
+      separate(Files,c("bs","Trait","Dataset","morebs"),"_",remove = F) %>% 
+      select(-bs,-morebs) %>% 
+      mutate(Files=map(Files,~readRDS(paste0("GEBV_91719/",.)))) %>% 
+      unnest(Files)
+gebvs %>% 
+      mutate(GeneticGroup=NA,
+             GeneticGroup=ifelse(grepl("Ug11|Ug12|Ug13|Ug14",GID,ignore.case = T),"UgTP",
+                                 ifelse(grepl("UG15F",GID),"UgGSC1","UgGSC2"))) %>% 
+      spread(Trait,GEBV) %>%
+      group_by(Dataset) %>% 
+      nest() %>% 
+      mutate(data=map2(data,Dataset,function(data,Dataset){
+            write.csv(data,
+                      file=paste0("GEBV_NaCRRI_",Dataset,"_91719.csv"),
+                      row.names = F) }))
+```
+
+
