@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="wolfemd" />
+
+
+<title>Predict GEBV for NaCRRI C2</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/darkly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  background-color: #f8f8f8; }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ef2929; } /* Alert */
+code span.an { color: #8f5902; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #c4a000; } /* Attribute */
+code span.bn { color: #0000cf; } /* BaseN */
+code span.cf { color: #204a87; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4e9a06; } /* Char */
+code span.cn { color: #000000; } /* Constant */
+code span.co { color: #8f5902; font-style: italic; } /* Comment */
+code span.cv { color: #8f5902; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #8f5902; font-weight: bold; font-style: italic; } /* Documentation */
+code span.dt { color: #204a87; } /* DataType */
+code span.dv { color: #0000cf; } /* DecVal */
+code span.er { color: #a40000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #0000cf; } /* Float */
+code span.fu { color: #000000; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #204a87; font-weight: bold; } /* Keyword */
+code span.op { color: #ce5c00; font-weight: bold; } /* Operator */
+code span.ot { color: #8f5902; } /* Other */
+code span.pp { color: #8f5902; font-style: italic; } /* Preprocessor */
+code span.sc { color: #000000; } /* SpecialChar */
+code span.ss { color: #4e9a06; } /* SpecialString */
+code span.st { color: #4e9a06; } /* String */
+code span.va { color: #000000; } /* Variable */
+code span.vs { color: #4e9a06; } /* VerbatimString */
+code span.wa { color: #8f5902; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">NaCRRI_2019GS</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Synopsis</a>
+</li>
+<li>
+  <a href="PrepareTrainingData.html">Prep. Training Data</a>
+</li>
+<li>
+  <a href="GetBLUPs.html">Get BLUPs</a>
+</li>
+<li>
+  <a href="CrossValidation.html">Cross-validation</a>
+</li>
+<li>
+  <a href="GetGEBVs.html">Get GEBV for GS C2</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Predict GEBV for NaCRRI C2</h1>
+<h4 class="author">wolfemd</h4>
+<h4 class="date">2019-9-17</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2020-02-13
+</p>
+<p>
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>NaCRRI_2019GS/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
+</p>
+<p>
+This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
+  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.5.0.9000). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20191203code"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Seed:</strong> <code>set.seed(20191203)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20191203code" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20191203)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Session information:</strong> recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be confident that you successfully produced the results during this run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongba539be"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> ba539be </a>
+</p>
+</div>
+<div id="strongRepositoryversionstrongba539be" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    analysis/.DS_Store
+    Ignored:    analysis/.Rhistory
+    Ignored:    output/.DS_Store
+
+Untracked files:
+    Untracked:  data/NaCRRI_CleanedTrialData_91619.rds
+    Untracked:  data/NaCRRI_ExptDesignsDetected_91619.rds
+    Untracked:  data/nacrri_blupsForCrossVal_91619.rds
+    Untracked:  data/nacrri_blupsForCrossVal_outliersRemoved_91619.rds
+    Untracked:  output/CrossVal_91719/
+    Untracked:  output/GEBV_91719/
+    Untracked:  output/GEBV_NaCRRI_NoOutlierRemoval_91719.csv
+    Untracked:  output/GEBV_NaCRRI_OutliersRemoved_91719.csv
+    Untracked:  output/PCscores_NaCRRI_SamplesForGS_91719.rds
+    Untracked:  workflowr_log.R
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the R Markdown and HTML files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view them.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+ba539be
+</td>
+<td>
+wolfemd
+</td>
+<td>
+2020-02-13
+</td>
+<td>
+Publish analyses and files for NaCRRI 2019 GS, originally done Sept. 2019.
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="blups-and-snps" class="section level1">
+<h1>BLUPs and SNPs</h1>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>()); <span class="kw">gc</span>()</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="kw">library</span>(tidyverse); <span class="kw">library</span>(magrittr); </span>
+<span id="cb1-3"><a href="#cb1-3"></a>blups&lt;-<span class="kw">readRDS</span>(<span class="dt">file=</span><span class="st">&quot;data/nacrri_blupsForCrossVal_91619.rds&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="st">      </span><span class="kw">mutate</span>(<span class="dt">Dataset=</span><span class="st">&quot;NoOutlierRemoval&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="st">      </span><span class="kw">select</span>(Trait,Dataset,blups) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="st">      </span><span class="kw">bind_rows</span>(</span>
+<span id="cb1-7"><a href="#cb1-7"></a>            <span class="kw">readRDS</span>(<span class="dt">file=</span><span class="st">&quot;data/nacrri_blupsForCrossVal_outliersRemoved_91619.rds&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb1-8"><a href="#cb1-8"></a><span class="st">                  </span><span class="kw">mutate</span>(<span class="dt">Dataset=</span><span class="st">&quot;OutliersRemoved&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb1-9"><a href="#cb1-9"></a><span class="st">                  </span><span class="kw">select</span>(Trait,Dataset,blups))</span>
+<span id="cb1-10"><a href="#cb1-10"></a></span>
+<span id="cb1-11"><a href="#cb1-11"></a>snps&lt;-<span class="kw">readRDS</span>(<span class="kw">paste0</span>(<span class="st">&quot;/workdir/mw489/ImputationEastAfrica_StageIII_91119/&quot;</span>,</span>
+<span id="cb1-12"><a href="#cb1-12"></a>                     <span class="st">&quot;DosageMatrix_ImputationEastAfrica_AllSamples_ReadyForGP_91419.rds&quot;</span>))</span>
+<span id="cb1-13"><a href="#cb1-13"></a></span>
+<span id="cb1-14"><a href="#cb1-14"></a><span class="co"># Sample lists</span></span>
+<span id="cb1-15"><a href="#cb1-15"></a>ugC1&lt;-<span class="kw">read.table</span>(<span class="kw">paste0</span>(<span class="st">&quot;/workdir/mw489/ImputationEastAfrica_StageIII_91119/&quot;</span>,</span>
+<span id="cb1-16"><a href="#cb1-16"></a>                        <span class="st">&quot;Subset_cassavaGBSbuild_June2016_withRef_NACCRI_CYCLE_chr1.imputed.samples&quot;</span>),</span>
+<span id="cb1-17"><a href="#cb1-17"></a>                 <span class="dt">stringsAsFactors =</span> F, <span class="dt">header =</span> F)<span class="op">$</span>V1</span>
+<span id="cb1-18"><a href="#cb1-18"></a>ug11&lt;-<span class="kw">rownames</span>(snps) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">grep</span>(<span class="st">&quot;^UG11&quot;</span>,.,<span class="dt">ignore.case =</span> T,<span class="dt">value =</span> T)</span>
+<span id="cb1-19"><a href="#cb1-19"></a>ug12&lt;-<span class="kw">rownames</span>(snps) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">grep</span>(<span class="st">&quot;^UG12&quot;</span>,.,<span class="dt">ignore.case =</span> T,<span class="dt">value =</span> T)</span>
+<span id="cb1-20"><a href="#cb1-20"></a>ug13&lt;-<span class="kw">rownames</span>(snps) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">grep</span>(<span class="st">&quot;^UG13&quot;</span>,.,<span class="dt">ignore.case =</span> T,<span class="dt">value =</span> T)</span>
+<span id="cb1-21"><a href="#cb1-21"></a>ug14&lt;-<span class="kw">rownames</span>(snps) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">grep</span>(<span class="st">&quot;^UG14|UG_14_&quot;</span>,.,<span class="dt">ignore.case =</span> T,<span class="dt">value =</span> T)</span>
+<span id="cb1-22"><a href="#cb1-22"></a><span class="co"># ugc14&lt;-rownames(snps) %&gt;% grep(&quot;^UGC14&quot;,.,ignore.case = T,value = T)</span></span>
+<span id="cb1-23"><a href="#cb1-23"></a><span class="co"># ugc17&lt;-rownames(snps) %&gt;% grep(&quot;^UGC17&quot;,.,ignore.case = T,value = T)</span></span>
+<span id="cb1-24"><a href="#cb1-24"></a><span class="co"># ugc18&lt;-rownames(snps) %&gt;% grep(&quot;^UGC18&quot;,.,ignore.case = T,value = T)</span></span>
+<span id="cb1-25"><a href="#cb1-25"></a>ugGSC1&lt;-<span class="kw">union</span>(<span class="kw">rownames</span>(snps) <span class="op">%&gt;%</span><span class="st"> </span>.[. <span class="op">%in%</span><span class="st"> </span>ugC1],</span>
+<span id="cb1-26"><a href="#cb1-26"></a>              <span class="kw">rownames</span>(snps) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">grep</span>(<span class="st">&quot;^UG15F&quot;</span>,.,<span class="dt">ignore.case =</span> T,<span class="dt">value =</span> T))</span>
+<span id="cb1-27"><a href="#cb1-27"></a>ugGSC2&lt;-<span class="kw">rownames</span>(snps) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">grep</span>(<span class="st">&quot;C2_GS_2018&quot;</span>,.,<span class="dt">value=</span>T,<span class="dt">invert =</span> F)</span>
+<span id="cb1-28"><a href="#cb1-28"></a></span>
+<span id="cb1-29"><a href="#cb1-29"></a>hasBLUPsAndSNPs&lt;-blups <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb1-30"><a href="#cb1-30"></a><span class="st">      </span><span class="kw">unnest</span>() <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb1-31"><a href="#cb1-31"></a><span class="st">      </span><span class="kw">select</span>(GID) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb1-32"><a href="#cb1-32"></a><span class="st">      </span>distinct <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb1-33"><a href="#cb1-33"></a><span class="st">      </span><span class="kw">filter</span>(GID <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(ug11,ug12,ug13,ug14,ugGSC1)) <span class="op">%$%</span></span>
+<span id="cb1-34"><a href="#cb1-34"></a><span class="st">      </span>GID</span>
+<span id="cb1-35"><a href="#cb1-35"></a></span>
+<span id="cb1-36"><a href="#cb1-36"></a><span class="kw">dim</span>(snps) <span class="co"># [1] 20733 23431</span></span>
+<span id="cb1-37"><a href="#cb1-37"></a>snps <span class="op">%&lt;&gt;%</span><span class="st"> </span>.[<span class="kw">rownames</span>(.) <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(hasBLUPsAndSNPs,ugGSC2),]</span>
+<span id="cb1-38"><a href="#cb1-38"></a><span class="kw">dim</span>(snps) <span class="co"># [1] 4120 23431</span></span>
+<span id="cb1-39"><a href="#cb1-39"></a><span class="kw">gc</span>()</span></code></pre></div>
+</div>
+<div id="make-a-kinship-matrix" class="section level1">
+<h1>Make a kinship matrix</h1>
+<p>MAF&gt;1% filter</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>maf_filter&lt;-<span class="cf">function</span>(snps,thresh){</span>
+<span id="cb2-2"><a href="#cb2-2"></a>    freq&lt;-<span class="kw">colMeans</span>(snps, <span class="dt">na.rm=</span>T)<span class="op">/</span><span class="dv">2</span>; maf&lt;-freq;</span>
+<span id="cb2-3"><a href="#cb2-3"></a>    maf[<span class="kw">which</span>(maf <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>)]&lt;-<span class="dv">1</span><span class="op">-</span>maf[<span class="kw">which</span>(maf <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>)]</span>
+<span id="cb2-4"><a href="#cb2-4"></a>    snps1&lt;-snps[,<span class="kw">which</span>(maf<span class="op">&gt;</span>thresh)];</span>
+<span id="cb2-5"><a href="#cb2-5"></a>    <span class="kw">return</span>(snps1) }</span>
+<span id="cb2-6"><a href="#cb2-6"></a>snps <span class="op">%&lt;&gt;%</span><span class="st"> </span><span class="kw">maf_filter</span>(.,<span class="fl">0.01</span>)</span>
+<span id="cb2-7"><a href="#cb2-7"></a><span class="kw">dim</span>(snps) <span class="co"># [1] 4120 23159</span></span></code></pre></div>
+<p>Make kinships</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">library</span>(rrBLUP)</span>
+<span id="cb3-2"><a href="#cb3-2"></a>K&lt;-rrBLUP<span class="op">::</span><span class="kw">A.mat</span>(snps<span class="dv">-1</span>)</span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="kw">saveRDS</span>(K,<span class="dt">file=</span><span class="kw">paste0</span>(<span class="st">&quot;/workdir/mw489/NaCRRI_2019GS/&quot;</span>,</span>
+<span id="cb3-4"><a href="#cb3-4"></a>                      <span class="st">&quot;Kinship_NaCRRI_SamplesForGS_91719.rds&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>ug11 <span class="op">%&lt;&gt;%</span><span class="st"> </span>.[. <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(K)]</span>
+<span id="cb4-2"><a href="#cb4-2"></a>ug12 <span class="op">%&lt;&gt;%</span><span class="st"> </span>.[. <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(K)]</span>
+<span id="cb4-3"><a href="#cb4-3"></a>ug13 <span class="op">%&lt;&gt;%</span><span class="st"> </span>.[. <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(K)]</span>
+<span id="cb4-4"><a href="#cb4-4"></a>ug14 <span class="op">%&lt;&gt;%</span><span class="st"> </span>.[. <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(K)]</span>
+<span id="cb4-5"><a href="#cb4-5"></a>ugGSC1 <span class="op">%&lt;&gt;%</span><span class="st"> </span>.[. <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(K)]</span>
+<span id="cb4-6"><a href="#cb4-6"></a>ugTP&lt;-<span class="kw">c</span>(ug11,ug12,ug13,ug14) <span class="op">%&gt;%</span><span class="st"> </span>unique</span>
+<span id="cb4-7"><a href="#cb4-7"></a></span>
+<span id="cb4-8"><a href="#cb4-8"></a>blups <span class="op">%&lt;&gt;%</span></span>
+<span id="cb4-9"><a href="#cb4-9"></a><span class="st">      </span><span class="kw">rename</span>(<span class="dt">trainingData=</span>blups) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb4-10"><a href="#cb4-10"></a><span class="st">      </span><span class="kw">mutate</span>(<span class="dt">trainingData=</span><span class="kw">map</span>(trainingData,<span class="op">~</span><span class="kw">filter</span>(.,GID <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(K))))</span>
+<span id="cb4-11"><a href="#cb4-11"></a></span>
+<span id="cb4-12"><a href="#cb4-12"></a><span class="co"># Note: Looks like only 15 samples with TCHART... remove</span></span>
+<span id="cb4-13"><a href="#cb4-13"></a></span>
+<span id="cb4-14"><a href="#cb4-14"></a>blups <span class="op">%&lt;&gt;%</span><span class="st"> </span><span class="kw">filter</span>(Trait <span class="op">!=</span><span class="st"> &quot;TCHART&quot;</span>)</span>
+<span id="cb4-15"><a href="#cb4-15"></a></span>
+<span id="cb4-16"><a href="#cb4-16"></a>blups <span class="op">%&lt;&gt;%</span></span>
+<span id="cb4-17"><a href="#cb4-17"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">seed_of_seeds=</span><span class="dv">1</span><span class="op">:</span><span class="kw">n</span>(),</span>
+<span id="cb4-18"><a href="#cb4-18"></a>           <span class="dt">seeds=</span><span class="kw">map</span>(seed_of_seeds,<span class="cf">function</span>(seed_of_seeds,<span class="dt">reps=</span><span class="dv">5</span>){ </span>
+<span id="cb4-19"><a href="#cb4-19"></a>               <span class="kw">set.seed</span>(seed_of_seeds); </span>
+<span id="cb4-20"><a href="#cb4-20"></a>               outSeeds&lt;-<span class="kw">sample</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">1000</span>,<span class="dt">size =</span> reps,<span class="dt">replace =</span> F); </span>
+<span id="cb4-21"><a href="#cb4-21"></a>               <span class="kw">return</span>(outSeeds) }))</span></code></pre></div>
+</div>
+<div id="pca-cbsulm15" class="section level1">
+<h1>PCA [cbsulm15]</h1>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>pca&lt;-<span class="kw">prcomp</span>(snps, <span class="dt">scale=</span>T, <span class="dt">center=</span>T) </span>
+<span id="cb5-2"><a href="#cb5-2"></a>pc_scores&lt;-pca<span class="op">$</span>x <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="st">    </span>.[,<span class="dv">1</span><span class="op">:</span><span class="dv">50</span>] <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb5-4"><a href="#cb5-4"></a><span class="st">    </span>as.data.frame <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb5-5"><a href="#cb5-5"></a><span class="st">    </span><span class="kw">rownames_to_column</span>(<span class="dt">var=</span><span class="st">&quot;FullSampleName&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb5-6"><a href="#cb5-6"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">GeneticGroup=</span><span class="ot">NA</span>,</span>
+<span id="cb5-7"><a href="#cb5-7"></a>           <span class="dt">GeneticGroup=</span><span class="kw">ifelse</span>(FullSampleName <span class="op">%in%</span><span class="st"> </span>ugTP,<span class="st">&quot;UgTP&quot;</span>,</span>
+<span id="cb5-8"><a href="#cb5-8"></a>                               <span class="kw">ifelse</span>(FullSampleName <span class="op">%in%</span><span class="st"> </span>ugGSC1,<span class="st">&quot;UgGSC1&quot;</span>,</span>
+<span id="cb5-9"><a href="#cb5-9"></a>                                      <span class="kw">ifelse</span>(FullSampleName <span class="op">%in%</span><span class="st"> </span>ugGSC2,<span class="st">&quot;UgGSC2&quot;</span>,GeneticGroup))))</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">summary</span>(pca)<span class="op">$</span>importance[,<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>] </span></code></pre></div>
+<p>PC1 PC2 PC3 PC4 PC5 PC6 Standard deviation 42.66894 33.44368 28.70264 25.06732 23.58510 21.38532 Proportion of Variance 0.07861 0.04830 0.03557 0.02713 0.02402 0.01975 Cumulative Proportion 0.07861 0.12691 0.16248 0.18962 0.21364 0.23338 PC7 PC8 PC9 PC10 Standard deviation 20.46902 20.18326 19.17257 18.23462 Proportion of Variance 0.01809 0.01759 0.01587 0.01436 Cumulative Proportion 0.25147 0.26906 0.28494 0.29929</p>
+<p>First two PCs explain about 13% of the genetic variance.</p>
+<p>Save PCA results</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">saveRDS</span>(pc_scores,<span class="dt">file=</span><span class="st">&quot;/workdir/mw489/NaCRRI_2019GS/PCscores_NaCRRI_SamplesForGS_91719.rds&quot;</span>)</span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="kw">saveRDS</span>(pca,<span class="dt">file=</span><span class="st">&quot;/workdir/mw489/NaCRRI_2019GS/PCA_NaCRRI_SamplesForGS_91719.rds&quot;</span>)</span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="kw">rm</span>(pca); <span class="kw">gc</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co">#rm(list=ls());gc()</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="kw">library</span>(tidyverse); <span class="kw">library</span>(magrittr); <span class="kw">library</span>(cowplot); </span>
+<span id="cb8-3"><a href="#cb8-3"></a>pc_scores&lt;-<span class="kw">readRDS</span>(<span class="st">&quot;output/PCscores_NaCRRI_SamplesForGS_91719.rds&quot;</span>)</span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="kw">library</span>(viridis)</span>
+<span id="cb8-5"><a href="#cb8-5"></a>pc1v2&lt;-pc_scores <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb8-6"><a href="#cb8-6"></a><span class="st">      </span><span class="kw">ggplot</span>(.,<span class="kw">aes</span>(<span class="dt">x=</span>PC1,<span class="dt">y=</span>PC2,<span class="dt">color=</span>GeneticGroup)) <span class="op">+</span><span class="st"> </span></span>
+<span id="cb8-7"><a href="#cb8-7"></a><span class="st">      </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></span>
+<span id="cb8-8"><a href="#cb8-8"></a><span class="st">      </span><span class="kw">theme_bw</span>() <span class="op">+</span><span class="st"> </span><span class="kw">scale_color_viridis_d</span>() <span class="op">+</span><span class="st"> </span></span>
+<span id="cb8-9"><a href="#cb8-9"></a><span class="st">      </span><span class="kw">labs</span>(<span class="dt">x=</span><span class="st">&quot;PC1 (8%)&quot;</span>,<span class="dt">y=</span><span class="st">&quot;PC2 (5%)&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&#39;none&#39;</span>)</span>
+<span id="cb8-10"><a href="#cb8-10"></a>pc3v4&lt;-pc_scores <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb8-11"><a href="#cb8-11"></a><span class="st">      </span><span class="kw">ggplot</span>(.,<span class="kw">aes</span>(<span class="dt">x=</span>PC3,<span class="dt">y=</span>PC4,<span class="dt">color=</span>GeneticGroup)) <span class="op">+</span><span class="st"> </span></span>
+<span id="cb8-12"><a href="#cb8-12"></a><span class="st">      </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></span>
+<span id="cb8-13"><a href="#cb8-13"></a><span class="st">      </span><span class="kw">theme_bw</span>() <span class="op">+</span><span class="st"> </span><span class="kw">scale_color_viridis_d</span>() <span class="op">+</span><span class="st"> </span></span>
+<span id="cb8-14"><a href="#cb8-14"></a><span class="st">      </span><span class="kw">labs</span>(<span class="dt">x=</span><span class="st">&quot;PC3 (4%)&quot;</span>,<span class="dt">y=</span><span class="st">&quot;PC4 (3%)&quot;</span>)</span>
+<span id="cb8-15"><a href="#cb8-15"></a><span class="kw">plot_grid</span>(pc1v2,pc3v4)</span></code></pre></div>
+<p><img src="figure/GetGEBVs.Rmd/unnamed-chunk-8-1.png" width="1632" style="display: block; margin: auto;" /></p>
+</div>
+<div id="get-gebv-cbsulm16" class="section level1">
+<h1>Get GEBV! [cbsulm16]</h1>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>K&lt;-<span class="kw">readRDS</span>(<span class="kw">paste0</span>(<span class="st">&quot;/workdir/mw489/NaCRRI_2019GS/&quot;</span>,</span>
+<span id="cb9-2"><a href="#cb9-2"></a>                  <span class="st">&quot;Kinship_NaCRRI_SamplesForGS_91719.rds&quot;</span>))</span>
+<span id="cb9-3"><a href="#cb9-3"></a>ug11 <span class="op">%&lt;&gt;%</span><span class="st"> </span>.[. <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(K)]</span>
+<span id="cb9-4"><a href="#cb9-4"></a>ug12 <span class="op">%&lt;&gt;%</span><span class="st"> </span>.[. <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(K)]</span>
+<span id="cb9-5"><a href="#cb9-5"></a>ug13 <span class="op">%&lt;&gt;%</span><span class="st"> </span>.[. <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(K)]</span>
+<span id="cb9-6"><a href="#cb9-6"></a>ug14 <span class="op">%&lt;&gt;%</span><span class="st"> </span>.[. <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(K)]</span>
+<span id="cb9-7"><a href="#cb9-7"></a>ugGSC1 <span class="op">%&lt;&gt;%</span><span class="st"> </span>.[. <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(K)]</span>
+<span id="cb9-8"><a href="#cb9-8"></a>ugTP&lt;-<span class="kw">c</span>(ug11,ug12,ug13,ug14) <span class="op">%&gt;%</span><span class="st"> </span>unique</span>
+<span id="cb9-9"><a href="#cb9-9"></a></span>
+<span id="cb9-10"><a href="#cb9-10"></a>blups <span class="op">%&lt;&gt;%</span></span>
+<span id="cb9-11"><a href="#cb9-11"></a><span class="st">      </span><span class="kw">rename</span>(<span class="dt">trainingData=</span>blups) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb9-12"><a href="#cb9-12"></a><span class="st">      </span><span class="kw">mutate</span>(<span class="dt">trainingData=</span><span class="kw">map</span>(trainingData,<span class="op">~</span><span class="kw">filter</span>(.,GID <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(K))))</span>
+<span id="cb9-13"><a href="#cb9-13"></a></span>
+<span id="cb9-14"><a href="#cb9-14"></a><span class="co"># Note: Looks like only 15 samples with TCHART... remove</span></span>
+<span id="cb9-15"><a href="#cb9-15"></a></span>
+<span id="cb9-16"><a href="#cb9-16"></a>blups <span class="op">%&lt;&gt;%</span><span class="st"> </span><span class="kw">filter</span>(Trait <span class="op">!=</span><span class="st"> &quot;TCHART&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">require</span>(sommer)</span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="kw">require</span>(furrr)</span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="kw">options</span>(<span class="dt">future.globals.maxSize=</span> <span class="dv">1500</span><span class="op">*</span><span class="dv">1024</span><span class="op">^</span><span class="dv">2</span>)</span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="kw">options</span>(<span class="dt">mc.cores=</span><span class="dv">18</span>)</span>
+<span id="cb10-5"><a href="#cb10-5"></a><span class="kw">plan</span>(multiprocess)</span>
+<span id="cb10-6"><a href="#cb10-6"></a>proctime&lt;-<span class="kw">proc.time</span>()</span>
+<span id="cb10-7"><a href="#cb10-7"></a>blups <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb10-8"><a href="#cb10-8"></a><span class="st">      </span><span class="kw">mutate</span>(<span class="dt">GEBV=</span><span class="kw">future_pmap</span>(.,<span class="cf">function</span>(Trait,trainingData,Dataset,...){</span>
+<span id="cb10-9"><a href="#cb10-9"></a>            trndata&lt;-trainingData <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb10-10"><a href="#cb10-10"></a><span class="st">                  </span><span class="kw">mutate</span>(<span class="dt">GID=</span><span class="kw">factor</span>(GID,<span class="dt">levels=</span><span class="kw">rownames</span>(K)))</span>
+<span id="cb10-11"><a href="#cb10-11"></a>            fit &lt;-<span class="st"> </span><span class="kw">mmer</span>(<span class="dt">fixed =</span> drgBLUP <span class="op">~</span><span class="dv">1</span>,</span>
+<span id="cb10-12"><a href="#cb10-12"></a>                        <span class="dt">random =</span> <span class="op">~</span><span class="kw">vs</span>(GID,<span class="dt">Gu=</span>K),</span>
+<span id="cb10-13"><a href="#cb10-13"></a>                        <span class="dt">weights =</span> WT,</span>
+<span id="cb10-14"><a href="#cb10-14"></a>                        <span class="dt">data=</span>trndata)</span>
+<span id="cb10-15"><a href="#cb10-15"></a>            x&lt;-fit<span class="op">$</span>U<span class="op">$</span><span class="st">`</span><span class="dt">u:GID</span><span class="st">`</span><span class="op">$</span>drgBLUP </span>
+<span id="cb10-16"><a href="#cb10-16"></a>            gebvs&lt;-<span class="kw">tibble</span>(<span class="dt">GID=</span><span class="kw">names</span>(x),</span>
+<span id="cb10-17"><a href="#cb10-17"></a>                          <span class="dt">GEBV=</span><span class="kw">as.numeric</span>(x))</span>
+<span id="cb10-18"><a href="#cb10-18"></a>            <span class="kw">saveRDS</span>(gebvs,<span class="dt">file=</span><span class="kw">paste0</span>(<span class="st">&quot;output/&quot;</span>,</span>
+<span id="cb10-19"><a href="#cb10-19"></a>                                      <span class="st">&quot;GEBV_&quot;</span>,Trait,<span class="st">&quot;_&quot;</span>,Dataset,<span class="st">&quot;_NaCRRI_SamplesForGS_91719.rds&quot;</span>))</span>
+<span id="cb10-20"><a href="#cb10-20"></a>            <span class="kw">rm</span>(fit); <span class="kw">gc</span>()}))</span>
+<span id="cb10-21"><a href="#cb10-21"></a><span class="kw">proc.time</span>() <span class="op">-</span><span class="st"> </span>proctime</span></code></pre></div>
+</div>
+<div id="format-gebv" class="section level1">
+<h1>Format GEBV</h1>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>gebvs&lt;-<span class="kw">list.files</span>(<span class="dt">path =</span> <span class="st">&quot;GEBV_91719/&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="st">      </span><span class="kw">grep</span>(<span class="st">&quot;GEBV_&quot;</span>,.,<span class="dt">value =</span> T) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="st">      </span><span class="kw">grep</span>(<span class="st">&quot;_NaCRRI_SamplesForGS_91719.rds&quot;</span>,.,<span class="dt">value =</span> T) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb11-4"><a href="#cb11-4"></a><span class="st">      </span><span class="kw">tibble</span>(<span class="dt">Files=</span>.) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="st">      </span><span class="kw">separate</span>(Files,<span class="kw">c</span>(<span class="st">&quot;bs&quot;</span>,<span class="st">&quot;Trait&quot;</span>,<span class="st">&quot;Dataset&quot;</span>,<span class="st">&quot;morebs&quot;</span>),<span class="st">&quot;_&quot;</span>,<span class="dt">remove =</span> F) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="st">      </span><span class="kw">select</span>(<span class="op">-</span>bs,<span class="op">-</span>morebs) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb11-7"><a href="#cb11-7"></a><span class="st">      </span><span class="kw">mutate</span>(<span class="dt">Files=</span><span class="kw">map</span>(Files,<span class="op">~</span><span class="kw">readRDS</span>(<span class="kw">paste0</span>(<span class="st">&quot;GEBV_91719/&quot;</span>,.)))) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb11-8"><a href="#cb11-8"></a><span class="st">      </span><span class="kw">unnest</span>(Files)</span>
+<span id="cb11-9"><a href="#cb11-9"></a>gebvs <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb11-10"><a href="#cb11-10"></a><span class="st">      </span><span class="kw">mutate</span>(<span class="dt">GeneticGroup=</span><span class="ot">NA</span>,</span>
+<span id="cb11-11"><a href="#cb11-11"></a>             <span class="dt">GeneticGroup=</span><span class="kw">ifelse</span>(<span class="kw">grepl</span>(<span class="st">&quot;Ug11|Ug12|Ug13|Ug14&quot;</span>,GID,<span class="dt">ignore.case =</span> T),<span class="st">&quot;UgTP&quot;</span>,</span>
+<span id="cb11-12"><a href="#cb11-12"></a>                                 <span class="kw">ifelse</span>(<span class="kw">grepl</span>(<span class="st">&quot;UG15F&quot;</span>,GID),<span class="st">&quot;UgGSC1&quot;</span>,<span class="st">&quot;UgGSC2&quot;</span>))) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb11-13"><a href="#cb11-13"></a><span class="st">      </span><span class="kw">spread</span>(Trait,GEBV) <span class="op">%&gt;%</span></span>
+<span id="cb11-14"><a href="#cb11-14"></a><span class="st">      </span><span class="kw">group_by</span>(Dataset) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb11-15"><a href="#cb11-15"></a><span class="st">      </span><span class="kw">nest</span>() <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb11-16"><a href="#cb11-16"></a><span class="st">      </span><span class="kw">mutate</span>(<span class="dt">data=</span><span class="kw">map2</span>(data,Dataset,<span class="cf">function</span>(data,Dataset){</span>
+<span id="cb11-17"><a href="#cb11-17"></a>            <span class="kw">write.csv</span>(data,</span>
+<span id="cb11-18"><a href="#cb11-18"></a>                      <span class="dt">file=</span><span class="kw">paste0</span>(<span class="st">&quot;GEBV_NaCRRI_&quot;</span>,Dataset,<span class="st">&quot;_91719.csv&quot;</span>),</span>
+<span id="cb11-19"><a href="#cb11-19"></a>                      <span class="dt">row.names =</span> F) }))</span></code></pre></div>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">sessionInfo</span>()</span></code></pre></div>
+<pre><code>R version 3.6.1 (2019-07-05)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS Mojave 10.14.6
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] viridis_0.5.1     viridisLite_0.3.0 cowplot_1.0.0     magrittr_1.5     
+ [5] forcats_0.4.0     stringr_1.4.0     dplyr_0.8.3       purrr_0.3.3      
+ [9] readr_1.3.1       tidyr_1.0.0       tibble_2.1.3      ggplot2_3.2.1    
+[13] tidyverse_1.2.1  
+
+loaded via a namespace (and not attached):
+ [1] tidyselect_0.2.5     xfun_0.11            haven_2.2.0         
+ [4] lattice_0.20-38      colorspace_1.4-1     vctrs_0.2.0         
+ [7] generics_0.0.2       htmltools_0.4.0      yaml_2.2.0          
+[10] rlang_0.4.1          later_1.0.0          pillar_1.4.2        
+[13] withr_2.1.2          glue_1.3.1           modelr_0.1.5        
+[16] readxl_1.3.1         lifecycle_0.1.0      munsell_0.5.0       
+[19] gtable_0.3.0         workflowr_1.5.0.9000 cellranger_1.1.0    
+[22] rvest_0.3.5          evaluate_0.14        labeling_0.3        
+[25] knitr_1.26           httpuv_1.5.2         broom_0.5.2         
+[28] Rcpp_1.0.3           promises_1.1.0       backports_1.1.5     
+[31] scales_1.1.0         jsonlite_1.6         farver_2.0.1        
+[34] fs_1.3.1             gridExtra_2.3        hms_0.5.2           
+[37] digest_0.6.22        stringi_1.4.3        grid_3.6.1          
+[40] rprojroot_1.3-2      cli_1.1.0            tools_3.6.1         
+[43] lazyeval_0.2.2       crayon_1.3.4         whisker_0.4         
+[46] pkgconfig_2.0.3      zeallot_0.1.0        xml2_1.2.2          
+[49] lubridate_1.7.4      assertthat_0.2.1     rmarkdown_1.17      
+[52] httr_1.4.1           rstudioapi_0.10      R6_2.4.1            
+[55] nlme_3.1-142         git2r_0.26.1         compiler_3.6.1      </code></pre>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
