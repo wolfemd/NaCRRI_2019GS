@@ -441,6 +441,9 @@ div.tocify {
   <a href="GetGEBVs.html">Get GEBV for GS C2</a>
 </li>
 <li>
+  <a href="GetGainEst.html">Est. Genetic Gain</a>
+</li>
+<li>
   <a href="license.html">License</a>
 </li>
       </ul>
@@ -495,7 +498,7 @@ div.section {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2020-02-13
+<strong>Last updated:</strong> 2020-02-14
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -586,10 +589,10 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomwolfemdNaCRRI2019GStreefad1cfd638105a1363f0f6640786b8ee47fa50e3targetblankfad1cfda"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/wolfemd/NaCRRI_2019GS/tree/fad1cfd638105a1363f0f6640786b8ee47fa50e3" target="_blank">fad1cfd</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomwolfemdNaCRRI2019GStree211ecee05dd670d9e41c82b8c478ab012b86c086targetblank211eceea"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/wolfemd/NaCRRI_2019GS/tree/211ecee05dd670d9e41c82b8c478ab012b86c086" target="_blank">211ecee</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomwolfemdNaCRRI2019GStreefad1cfd638105a1363f0f6640786b8ee47fa50e3targetblankfad1cfda" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomwolfemdNaCRRI2019GStree211ecee05dd670d9e41c82b8c478ab012b86c086targetblank211eceea" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -643,6 +646,23 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/wolfemd/NaCRRI_2019GS/a945303b8d7ba6673b1f2fa31d2f68f0aceb9a30/docs/CrossValidation.html" target="_blank">a945303</a>
+</td>
+<td>
+wolfemd
+</td>
+<td>
+2020-02-13
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 html
@@ -861,8 +881,8 @@ Publish analyses and files for NaCRRI 2019 GS, originally done Sept. 2019.
 <h1>Plot Results</h1>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>());<span class="kw">gc</span>()</span></code></pre></div>
 <pre><code>          used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)
-Ncells  618184 33.1    1302744 69.6         NA  1002361 53.6
-Vcells 1161143  8.9    8388608 64.0     102400  1958912 15.0</code></pre>
+Ncells  618186 33.1    1302584 69.6         NA  1006738 53.8
+Vcells 1161219  8.9    8388608 64.0     102400  1960098 15.0</code></pre>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">library</span>(tidyverse); <span class="kw">library</span>(magrittr); <span class="kw">library</span>(cowplot); </span>
 <span id="cb11-2"><a href="#cb11-2"></a>cv&lt;-<span class="kw">tibble</span>(<span class="dt">Files=</span><span class="kw">list.files</span>(<span class="st">&quot;output/CrossVal_91719/&quot;</span>)) <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb11-3"><a href="#cb11-3"></a><span class="st">      </span><span class="kw">separate</span>(Files,<span class="kw">c</span>(<span class="st">&quot;bs&quot;</span>,<span class="st">&quot;Trait&quot;</span>,<span class="st">&quot;Dataset&quot;</span>,<span class="st">&quot;morebs&quot;</span>),<span class="st">&quot;_&quot;</span>,<span class="dt">remove =</span> F) <span class="op">%&gt;%</span><span class="st"> </span></span>

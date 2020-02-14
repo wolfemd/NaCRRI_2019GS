@@ -589,10 +589,10 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomwolfemdNaCRRI2019GStree95b438553af28095550205a5048678a8d3123fa9targetblank95b4385a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/wolfemd/NaCRRI_2019GS/tree/95b438553af28095550205a5048678a8d3123fa9" target="_blank">95b4385</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomwolfemdNaCRRI2019GStree211ecee05dd670d9e41c82b8c478ab012b86c086targetblank211eceea"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/wolfemd/NaCRRI_2019GS/tree/211ecee05dd670d9e41c82b8c478ab012b86c086" target="_blank">211ecee</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomwolfemdNaCRRI2019GStree95b438553af28095550205a5048678a8d3123fa9targetblank95b4385a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomwolfemdNaCRRI2019GStree211ecee05dd670d9e41c82b8c478ab012b86c086targetblank211eceea" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -608,9 +608,6 @@ Ignored files:
 
 Untracked files:
     Untracked:  workflowr_log.R
-
-Unstaged changes:
-    Modified:   analysis/GetGEBVs.Rmd
 
 </code></pre>
 <p>
@@ -649,6 +646,23 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/wolfemd/NaCRRI_2019GS/a3f25cc47fac64f7ba34f23d278bf2a6c636b053/docs/GetGainEst.html" target="_blank">a3f25cc</a>
+</td>
+<td>
+wolfemd
+</td>
+<td>
+2020-02-14
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -698,7 +712,47 @@ Show gen. gain with box and barplots of GEBVs.
 <span id="cb2-14"><a href="#cb2-14"></a><span class="st">    </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">face =</span> <span class="st">&#39;bold&#39;</span>,<span class="dt">angle =</span> <span class="dv">90</span>),</span>
 <span id="cb2-15"><a href="#cb2-15"></a>          <span class="dt">legend.position =</span> <span class="st">&#39;none&#39;</span>) }</span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">boxplotGenGain</span>(<span class="dt">gebvs =</span> gebvs,<span class="dt">traits =</span> traits)</span></code></pre></div>
-<p><img src="figure/GetGainEst.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /> ## Barplot (Mean + SE) GEBVs</p>
+<p><img src="figure/GetGainEst.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-3-1">
+Past versions of unnamed-chunk-3-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-3-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/wolfemd/NaCRRI_2019GS/blob/a3f25cc47fac64f7ba34f23d278bf2a6c636b053/docs/figure/GetGainEst.Rmd/unnamed-chunk-3-1.png" target="_blank">a3f25cc</a>
+</td>
+<td>
+wolfemd
+</td>
+<td>
+2020-02-14
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="barplot-mean-se-gebvs" class="section level2">
+<h2>Barplot (Mean + SE) GEBVs</h2>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>barplotGenGain&lt;-<span class="cf">function</span>(gebvs,traits){</span>
 <span id="cb4-2"><a href="#cb4-2"></a>  <span class="co"># Input</span></span>
 <span id="cb4-3"><a href="#cb4-3"></a>  <span class="co"># traits: vector of columns in df containing gebvs</span></span>
@@ -724,6 +778,43 @@ Show gen. gain with box and barplots of GEBVs.
 <span id="cb4-23"><a href="#cb4-23"></a>        <span class="dt">legend.position =</span> <span class="st">&#39;none&#39;</span>) }</span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">barplotGenGain</span>(<span class="dt">gebvs =</span> gebvs,<span class="dt">traits =</span> traits)</span></code></pre></div>
 <p><img src="figure/GetGainEst.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-5-1">
+Past versions of unnamed-chunk-5-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-5-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/wolfemd/NaCRRI_2019GS/blob/a3f25cc47fac64f7ba34f23d278bf2a6c636b053/docs/figure/GetGainEst.Rmd/unnamed-chunk-5-1.png" target="_blank">a3f25cc</a>
+</td>
+<td>
+wolfemd
+</td>
+<td>
+2020-02-14
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
