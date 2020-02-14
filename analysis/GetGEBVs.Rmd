@@ -198,13 +198,13 @@ proc.time() - proctime
 
 # Format GEBV
 ```{r, eval=F}
-gebvs<-list.files(path = "GEBV_91719/") %>% 
+gebvs<-list.files(path = "output/GEBV_91719/") %>% 
       grep("GEBV_",.,value = T) %>% 
       grep("_NaCRRI_SamplesForGS_91719.rds",.,value = T) %>% 
       tibble(Files=.) %>% 
       separate(Files,c("bs","Trait","Dataset","morebs"),"_",remove = F) %>% 
       select(-bs,-morebs) %>% 
-      mutate(Files=map(Files,~readRDS(paste0("GEBV_91719/",.)))) %>% 
+      mutate(Files=map(Files,~readRDS(paste0("output/GEBV_91719/",.)))) %>% 
       unnest(Files)
 gebvs %>% 
       mutate(GeneticGroup=NA,
@@ -215,8 +215,11 @@ gebvs %>%
       nest() %>% 
       mutate(data=map2(data,Dataset,function(data,Dataset){
             write.csv(data,
-                      file=paste0("GEBV_NaCRRI_",Dataset,"_91719.csv"),
+                      file=paste0("output/GEBV_NaCRRI_",Dataset,"_91719.csv"),
                       row.names = F) }))
 ```
 
+# Next step
+
+[Get Genetic Gain Estimate](GetGainEst.html)
 
