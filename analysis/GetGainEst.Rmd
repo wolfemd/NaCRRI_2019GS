@@ -1,0 +1,74 @@
+---
+title: "Estimate Genetic Gain"
+author: "wolfemd"
+date: "2020-2-13"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = F, tidy = T)
+```
+
+# Objective
+
+Given a selection index and the GEBV previously obtained [previously](GetGEBVs.html), estimate genetic gain.
+
+```{r}
+library(tidyverse); library(magrittr)
+gebvs<-read.csv("output/GEBV_NaCRRI_NoOutlierRemoval_91719.csv", stringsAsFactors = F)
+gebvs$GeneticGroup <-factor(gebvs$GeneticGroup,levels=c("UgTP","UgGSC1","UgGSC2"))
+traits<-colnames(gebvs) %>% grep("GID|GeneticGroup",.,value = T, invert = T)
+```
+
+## Boxplot of GEBVs
+```{r}
+boxplotGenGain<-function(gebvs,traits){
+  # Input
+  # traits: vector of columns in df containing gebvs
+  # gebvs: an input dataframe with columns containing gebvs
+  ## gebvs$GeneticGroup: one column should be named GeneticGroup...
+  ##                  and be a factor with levels ordered 
+  ##                  in sequence by breeding cycle
+  gebvs_long<-gebvs %>% 
+    tidyr::pivot_longer(cols=traits,names_to = "Trait",values_to = "GEBV")
+  gebvs_long %>% 
+    ggplot2::ggplot(.,aes(x=GeneticGroup,y=GEBV, fill=GeneticGroup)) + 
+    geom_boxplot() + 
+    facet_wrap(~Trait,scales='free_y') + 
+    theme(axis.text.x = element_text(face = 'bold',angle = 90),
+          legend.position = 'none') }
+```
+```{r}
+boxplotGenGain(gebvs = gebvs,traits = traits)
+```
+## Barplot (Mean + SE) GEBVs
+```{r}
+barplotGenGain<-function(gebvs,traits){
+  # Input
+  # traits: vector of columns in df containing gebvs
+  # gebvs: an input dataframe with columns containing gebvs
+  ## gebvs$GeneticGroup: one column should be named GeneticGroup...
+  ##                  and be a factor with levels ordered 
+  ##                  in sequence by breeding cycle
+gebvs_long<-gebvs %>% 
+    tidyr::pivot_longer(cols=traits,names_to = "Trait",values_to = "GEBV")
+  
+gebvs_long %>% 
+  group_by(Trait,GeneticGroup) %>% 
+  summarize(meanGEBV=mean(GEBV),
+            stdErr=sd(GEBV)/sqrt(n()),
+            upperSE=meanGEBV+stdErr,
+            lowerSE=meanGEBV-stdErr) %>% 
+  ggplot(.,aes(x=GeneticGroup,y=meanGEBV,fill=Trait)) + 
+  geom_bar(stat = 'identity') + 
+  geom_linerange(aes(ymax=upperSE,
+                     ymin=lowerSE)) + 
+  facet_wrap(~Trait,scales='free_y') + 
+  theme(axis.text.x = element_text(face = 'bold',angle = 90),
+        legend.position = 'none') }
+```
+```{r}
+barplotGenGain(gebvs = gebvs,traits = traits)
+```
