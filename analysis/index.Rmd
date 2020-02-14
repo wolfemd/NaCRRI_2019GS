@@ -13,6 +13,7 @@ editor_options:
 2. [Stage I: Get BLUPs](GetBLUPs.html)
 3. [Stage II: Cross-validation Run](CrossValidation.html)
 4. [Stage II: Genomic prediction of GS C2](GetGEBVs.html)
+5. [Stage II: Estimate genetic gain](GetGainEst.html)
 
 # Standardization ToDo's
 

@@ -13,6 +13,8 @@ navbar:
     href: CrossValidation.html
   - text: Get GEBV for GS C2
     href: GetGEBVs.html
+  - text: Est. Genetic Gain
+    href: GetGainEst.html
   - text: License
     href: license.html
   right:
